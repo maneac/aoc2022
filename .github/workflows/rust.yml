@@ -77,10 +77,9 @@ jobs:
       - name: Cargo Tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: "--packages \"day_*\""
-          run-types: "Tests"
+          args: "--packages \"day_*\" --skip-clean --benches --exclude-files \"fetch_day/*,bin/*.rs,benches/*.rs\""
           timeout: 120
-        
+
       - name: Replace NaNs
         run: |
           sed -i 's/src" line-rate="NaN"/src" line-rate="0"/g' cobertura.xml
