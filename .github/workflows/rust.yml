@@ -33,7 +33,7 @@ jobs:
         env:
           AOC_AES_KEY: ${{ secrets.AOC_AES_KEY }}
         run: |
-          cargo run --release -p fetch_day -- --decrypt-data
+          cargo run -p fetch_day -- --decrypt-data
 
       - name: Cargo Tarpaulin
         uses: actions-rs/tarpaulin@v0.1
