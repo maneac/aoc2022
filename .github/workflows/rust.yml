@@ -37,8 +37,8 @@ jobs:
       - name: Install stable actions-rs toolchain
         uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
+          components: rustfmt, clippy
           override: true
 
       - name: Decrypt data for day
@@ -46,6 +46,33 @@ jobs:
           AOC_AES_KEY: ${{ secrets.AOC_AES_KEY }}
         run: |
           cargo run -p fetch_day -- --decrypt-data
+
+      - name: Format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --check
+
+      - name: Cargo error check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --workspace
+
+      - name: PR Clippy error check
+        uses: actions-rs/clippy-check@v1
+        if: github.event_name == 'pull_request'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Clippy
+          args: --workspace --all-features -- -D clippy::all
+
+      - name: Merge Clippy error check
+        uses: actions-rs/cargo@v1
+        if: github.event_name != 'pull_request'
+        with:
+          command: clippy
+          args: --workspace --all-features -- -D clippy::all
 
       - name: Cargo Tarpaulin
         uses: actions-rs/tarpaulin@v0.1
@@ -81,49 +108,3 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
-
-  format:
-    name: Format
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-      - name: Install stable actions-rs toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
-          override: true
-
-      - name: Format check
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all --check
-
-      - name: Cargo error check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --workspace
-
-      - name: Clippy error check
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: Clippy
-          args: --workspace --all-features -- -D clippy::all
