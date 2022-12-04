@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AOC_SESSION_TOKEN: ""
+  AOC_AES_KEY: ""
 
 jobs:
   test:
@@ -24,6 +25,12 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - name: Decrypt data for day
+        env:
+          AOC_AES_KEY: ${{ secrets.AOC_AES_KEY }}
+        run: |
+          cargo run --release -p fetch_day -- --decrypt-data
 
       - name: Cargo Tarpaulin
         uses: actions-rs/tarpaulin@v0.1

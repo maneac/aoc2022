@@ -31,6 +31,8 @@ impl Input {
 mod tests {
     use super::*;
 
+    const DATA_DIR: &str = "../../data";
+
     mod from_data {
         use super::*;
 
@@ -71,7 +73,7 @@ mod tests {
         #[test]
         fn actual() {
             run(&Case {
-                data: Input::from_data(&read_data("../../data")),
+                data: Input::from_data(&read_data(DATA_DIR)),
                 expected: PART_1,
             })
         }
@@ -100,7 +102,7 @@ mod tests {
         #[test]
         fn actual() {
             run(&Case {
-                data: Input::from_data(&read_data("../../data")),
+                data: Input::from_data(&read_data(DATA_DIR)),
                 expected: PART_2,
             })
         }
