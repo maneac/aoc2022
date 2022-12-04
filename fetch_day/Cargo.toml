@@ -1,0 +1,14 @@
+[package]
+name = "fetch_day"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4"
+clap = { version = "4.0", features = ["derive"] }
+regex = "1.7"
+reqwest = { version = "0.11", features = ["blocking"] }
+toml_edit = "0.15"
+sailfish = "0.5"

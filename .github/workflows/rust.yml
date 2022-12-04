@@ -1,0 +1,94 @@
+name: Rust
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+  AOC_SESSION_TOKEN: ""
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install stable actions-rs toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Cargo Tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: "--packages \"day_*\""
+          run-types: "Tests"
+          timeout: 120
+        
+      - name: Replace NaNs
+        run: |
+          sed -i 's/src" line-rate="NaN"/src" line-rate="0"/g' cobertura.xml
+          COV_PC=$(python3 -c $(sed -rn 's/.*<coverage lines-covered="([0-9]+)" lines-valid="([0-9]+)".*/print(\1\/\2)/p' cobertura.xml))
+          sed -i 's/NaN/'$COV_PC'/g' cobertura.xml
+      - name: Archive coverage results
+        uses: actions/upload-artifact@v1
+        with:
+          name: code-coverage-report
+          path: cobertura.xml
+
+      - name: Generate coverage report
+        uses: irongut/CodeCoverageSummary@v1.2.0
+        with:
+          filename: cobertura.xml
+          badge: true
+          hide_branch_rate: true
+          hide_complexity: true
+          format: 'markdown'
+          output: 'both'
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install stable actions-rs toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          override: true
+
+      - name: Format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --check
+
+      - name: Cargo error check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --workspace
+
+      - name: Clippy error check
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Clippy
+          args: --workspace --all-features -- -D clippy::all
