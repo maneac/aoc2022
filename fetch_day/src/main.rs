@@ -1,5 +1,9 @@
 use std::{fmt::Display, fs, iter::Peekable, path::Path, str::Chars};
 
+use aes_gcm::{
+    aead::{rand_core::RngCore, Aead, OsRng},
+    Aes256Gcm, Key, KeyInit, Nonce,
+};
 use chrono::{Datelike, Utc};
 use clap::{Parser, ValueEnum};
 use regex::Regex;
@@ -31,8 +35,11 @@ struct Opts {
     )]
     force_download: bool,
 
-    #[arg(long, help = "Skip the downloading of the input data")]
+    #[arg(long, group = "data", help = "Skip the downloading of the input data")]
     no_data: bool,
+
+    #[arg(long, group = "data", help = "Only decrypt the input data")]
+    decrypt_data: bool,
 
     #[arg(
         short,
@@ -86,9 +93,14 @@ fn main() -> AnyResult<()> {
     };
 
     let aoc_token = env!("AOC_SESSION_TOKEN");
+    let key_bytes = env!("AOC_AES_KEY");
     let day_url = format!("https://adventofcode.com/{}/day/{}", opts.year, opts.day);
 
-    let day = DayBuilder::new(opts, aoc_token.to_string(), day_url);
+    if opts.decrypt_data {
+        return decrypt_data(key_bytes);
+    }
+
+    let day = DayBuilder::new(opts, aoc_token.to_string(), key_bytes.to_string(), day_url);
 
     day.write_data_file()?;
     day.write_instruction_files()?;
@@ -107,19 +119,24 @@ fn main() -> AnyResult<()> {
 struct DayBuilder {
     opts: Opts,
     aoc_token: String,
+    aoc_aes_key: Aes256Gcm,
     base_url: String,
     package_name: String,
     display_name: String,
 }
 
 impl DayBuilder {
-    fn new(opts: Opts, aoc_token: String, base_url: String) -> Self {
+    fn new(opts: Opts, aoc_token: String, data_key: String, base_url: String) -> Self {
+        let key = Key::<Aes256Gcm>::from_slice(data_key.as_bytes());
+        let aoc_aes_key = Aes256Gcm::new(key);
+
         let package_name = format!("day_{:02}", opts.day);
         let display_name = format!("Day {:02}", opts.day);
 
         Self {
             opts,
             aoc_token,
+            aoc_aes_key,
             base_url,
             package_name,
             display_name,
@@ -131,11 +148,37 @@ impl DayBuilder {
             return Ok(());
         }
 
-        let data_file = Path::new("data").join(format!("{}.txt", self.package_name));
-        if !data_file.exists() {
-            let data = self.get_from_aoc(Some("input"))?;
-            fs::write(data_file, data)?;
+        let data_dir = Path::new("data");
+        fs::create_dir_all(data_dir)?;
+
+        let data_file = data_dir.join(format!("{}.txt", self.package_name));
+        if data_file.exists() {
+            return Ok(());
         }
+
+        let data = self.get_from_aoc(Some("input"))?;
+        fs::write(data_file, &data)?;
+
+        let mut nonce = [0u8; 12];
+        OsRng.fill_bytes(&mut nonce);
+
+        let nonce = Nonce::from(nonce);
+
+        let ciphertext = self.aoc_aes_key.encrypt(&nonce, data.as_bytes()).unwrap();
+
+        let encoded = base64::encode(
+            nonce
+                .iter()
+                .chain(ciphertext.iter())
+                .copied()
+                .collect::<Vec<u8>>(),
+        );
+
+        fs::write(
+            data_dir.join(format!("{}.enc.txt", self.package_name)),
+            encoded,
+        )
+        .unwrap();
 
         Ok(())
     }
@@ -517,4 +560,38 @@ fn recursive_parse_instructions<'a>(
     }
 
     output
+}
+
+fn decrypt_data(key: &str) -> AnyResult<()> {
+    let key = Key::<Aes256Gcm>::from_slice(key.as_bytes());
+    let cipher = Aes256Gcm::new(key);
+
+    let dir = fs::read_dir("./data")?;
+    for file in dir {
+        let file = file?;
+        if !file.file_name().to_str().unwrap().ends_with(".enc.txt") {
+            continue;
+        }
+
+        let contents = fs::read_to_string(file.path()).unwrap();
+
+        let decoded = base64::decode(contents).unwrap();
+
+        let (nonce, ciphertext) = decoded.split_at(12);
+        let nonce = Nonce::from_iter(&mut nonce.iter().copied());
+
+        let decrypted = cipher.decrypt(&nonce, ciphertext).unwrap();
+
+        fs::write(
+            file.path().parent().unwrap().join(
+                file.file_name()
+                    .to_str()
+                    .unwrap()
+                    .replace(".enc.txt", ".txt"),
+            ),
+            decrypted,
+        )?;
+    }
+
+    Ok(())
 }
