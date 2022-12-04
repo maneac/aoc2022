@@ -11,6 +11,9 @@ env:
   AOC_SESSION_TOKEN: ""
   AOC_AES_KEY: ""
 
+permissions:
+  pull-requests: write
+
 jobs:
   test:
     name: Tests
