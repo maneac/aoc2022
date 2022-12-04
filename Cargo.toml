@@ -1,4 +1,4 @@
 [workspace]
 
 default-members = []
-members = ["fetch_day", "rs/day_01", "rs/day_02", "rs/day_03"]
+members = ["fetch_day", "rs/day_01", "rs/day_02", "rs/day_03", "rs/day_04"]
