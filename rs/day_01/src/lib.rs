@@ -118,7 +118,6 @@ mod tests {
         }
 
         #[test]
-        #[ignore = "Data directory does not exist in all locations"]
         fn actual() {
             run(&Case {
                 data: Input::from_data(&read_data(DATA_DIR)),
