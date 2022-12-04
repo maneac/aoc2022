@@ -335,10 +335,11 @@ struct LibRs<'a> {
 
 impl<'a> Template for LibRs<'a> {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(
-            base.as_ref().join("src").join("lib.rs"),
-            self.render_once()?,
-        )?;
+        fs::write(base.as_ref().join("src").join("lib.rs"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -351,7 +352,11 @@ struct CargoRs<'a> {
 
 impl<'a> Template for CargoRs<'a> {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("Cargo.toml"), self.render_once()?)?;
+        fs::write(base.as_ref().join("Cargo.toml"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -370,7 +375,11 @@ impl<'a> Template for MainRs<'a> {
                 .join("src")
                 .join("bin")
                 .join(format!("{day}.rs")),
-            self.render_once()?,
+            {
+                let mut output = self.render_once()?;
+                output.push('\n');
+                output
+            },
         )?;
         Ok(())
     }
@@ -385,10 +394,11 @@ struct BenchRs<'a> {
 
 impl<'a> Template for BenchRs<'a> {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(
-            base.as_ref().join("benches").join("bench.rs"),
-            self.render_once()?,
-        )?;
+        fs::write(base.as_ref().join("benches").join("bench.rs"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -401,7 +411,11 @@ struct MainGo<'a> {
 
 impl<'a> Template for MainGo<'a> {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("main.go"), self.render_once()?)?;
+        fs::write(base.as_ref().join("main.go"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -412,7 +426,11 @@ struct MainTestGo {}
 
 impl Template for MainTestGo {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("main_test.go"), self.render_once()?)?;
+        fs::write(base.as_ref().join("main_test.go"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -423,7 +441,11 @@ struct MainTs {}
 
 impl Template for MainTs {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("main.ts"), self.render_once()?)?;
+        fs::write(base.as_ref().join("main.ts"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -436,7 +458,11 @@ struct DayTs<'a> {
 
 impl<'a> Template for DayTs<'a> {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("day.ts"), self.render_once()?)?;
+        fs::write(base.as_ref().join("day.ts"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -447,7 +473,11 @@ struct DayBenchTs {}
 
 impl Template for DayBenchTs {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("day.bench.ts"), self.render_once()?)?;
+        fs::write(base.as_ref().join("day.bench.ts"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
@@ -458,7 +488,11 @@ struct DayTestTs {}
 
 impl Template for DayTestTs {
     fn write(self, base: impl AsRef<Path>) -> AnyResult<()> {
-        fs::write(base.as_ref().join("day.test.ts"), self.render_once()?)?;
+        fs::write(base.as_ref().join("day.test.ts"), {
+            let mut output = self.render_once()?;
+            output.push('\n');
+            output
+        })?;
         Ok(())
     }
 }
