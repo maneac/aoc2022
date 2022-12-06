@@ -72,11 +72,12 @@ jobs:
       - name: Cargo Tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: "--packages \"day_*\" --skip-clean --benches --exclude-files \"fetch_day/*,bin/*.rs,benches/*.rs\" --target-dir ./tarpaulin-target"
+          args: "--engine=llvm --packages \"day_*\" --skip-clean --benches --exclude-files \"fetch_day/*,bin/*.rs,benches/*.rs\" --target-dir ./tarpaulin-target"
           timeout: 120
 
       - name: Replace NaNs
         run: |
+          mv $(find . -type f -name "cobertura.xml") .
           sed -i 's/src" line-rate="NaN"/src" line-rate="0"/g' cobertura.xml
           COV_PC=$(python3 -c $(sed -rn 's/.*<coverage lines-covered="([0-9]+)" lines-valid="([0-9]+)".*/print(\1\/\2)/p' cobertura.xml))
           sed -i 's/NaN/'$COV_PC'/g' cobertura.xml
