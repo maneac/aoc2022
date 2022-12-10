@@ -1,7 +1,7 @@
 [workspace]
 
 default-members = []
-members = ["fetch_day", "rs/day_01", "rs/day_02", "rs/day_03", "rs/day_04", "rs/day_05", "rs/day_06", "rs/day_07", "rs/day_08", "rs/day_09"]
+members = ["fetch_day", "rs/day_01", "rs/day_02", "rs/day_03", "rs/day_04", "rs/day_05", "rs/day_06", "rs/day_07", "rs/day_08", "rs/day_09", "rs/day_10"]
 
 [workspace.dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
