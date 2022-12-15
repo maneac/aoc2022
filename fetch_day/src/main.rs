@@ -219,7 +219,7 @@ impl DayBuilder {
         for lang in &self.opts.langs {
             let dir = Path::new(&lang.to_string()).join(&self.package_name);
             fs::create_dir_all(&dir)?;
-            fs::write(dir.join("README.md"), &readme_contents)?;
+            fs::write(dir.join("README.md"), readme_contents.as_str())?;
         }
 
         Ok(())
@@ -612,7 +612,7 @@ fn decrypt_data(key: &str) -> AnyResult<()> {
         let decoded = base64::decode(contents).unwrap();
 
         let (nonce, ciphertext) = decoded.split_at(12);
-        let nonce = Nonce::from_iter(&mut nonce.iter().copied());
+        let nonce = Nonce::from_iter(nonce.iter().copied());
 
         let decrypted = cipher.decrypt(&nonce, ciphertext).unwrap();
 
