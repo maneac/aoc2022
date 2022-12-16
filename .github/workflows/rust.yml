@@ -72,7 +72,7 @@ jobs:
       - name: Cargo Tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: "--engine=llvm --packages \"day_*\" --skip-clean --benches --exclude-files \"fetch_day/*,bin/*.rs,benches/*.rs\" --target-dir ./tarpaulin-target"
+          args: "--engine=llvm --packages \"day_*\" --skip-clean --benches --release --exclude-files \"fetch_day/*,bin/*.rs,benches/*.rs\" --target-dir ./tarpaulin-target"
           timeout: 120
 
       - name: Replace NaNs
