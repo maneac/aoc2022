@@ -19,7 +19,7 @@ struct Opts {
         short,
         long = "day",
         value_name = "DAY",
-        value_parser = clap::value_parser!(u32).range(1..25),
+        value_parser = clap::value_parser!(u32).range(1..=25),
         default_value_t = Utc::now().with_timezone(&chrono::offset::FixedOffset::west_opt(5 * 3600).unwrap()).day().min(25),
         help = "Day to download the instructions and input for (defaults to the min(current day, 25) in EST)"
     )]
