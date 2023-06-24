@@ -9,7 +9,6 @@ use clap::{Parser, ValueEnum};
 use regex::Regex;
 use reqwest::Error;
 use sailfish::TemplateOnce;
-use toml_edit::Document;
 
 type AnyResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -19,7 +18,7 @@ struct Opts {
         short,
         long = "day",
         value_name = "DAY",
-        value_parser = clap::value_parser!(u32).range(1..25),
+        value_parser = clap::value_parser!(u32).range(1..=25),
         default_value_t = Utc::now().with_timezone(&chrono::offset::FixedOffset::west_opt(5 * 3600).unwrap()).day().min(25),
         help = "Day to download the instructions and input for (defaults to the min(current day, 25) in EST)"
     )]
@@ -92,15 +91,17 @@ fn main() -> AnyResult<()> {
         opts
     };
 
-    let aoc_token = env!("AOC_SESSION_TOKEN");
-    let key_bytes = env!("AOC_AES_KEY");
+    dotenvy::dotenv().ok();
+
+    let aoc_token = std::env::var("AOC_SESSION_TOKEN").expect("No 'AOC_SESSION_TOKEN' set");
+    let key = std::env::var("AOC_AES_KEY").expect("No 'AOC_AES_KEY' set");
     let day_url = format!("https://adventofcode.com/{}/day/{}", opts.year, opts.day);
 
     if opts.decrypt_data {
-        return decrypt_data(key_bytes);
+        return decrypt_data(key.as_bytes());
     }
 
-    let day = DayBuilder::new(opts, aoc_token.to_string(), key_bytes.to_string(), day_url);
+    let day = DayBuilder::new(opts, aoc_token, key, day_url);
 
     day.write_data_file()?;
     day.write_instruction_files()?;
@@ -293,15 +294,6 @@ impl DayBuilder {
             display_name: &self.display_name,
         }
         .write(&dir)?;
-
-        // adjust workspace Cargo.toml
-        let toml = fs::read_to_string("Cargo.toml")?;
-        let mut cargo_toml = toml.parse::<Document>()?;
-        cargo_toml["workspace"]["members"]
-            .as_array_mut()
-            .unwrap()
-            .push(dir.to_str().unwrap());
-        fs::write("Cargo.toml", cargo_toml.to_string())?;
 
         Ok(())
     }
@@ -596,8 +588,8 @@ fn recursive_parse_instructions<'a>(
     output
 }
 
-fn decrypt_data(key: &str) -> AnyResult<()> {
-    let key = Key::<Aes256Gcm>::from_slice(key.as_bytes());
+fn decrypt_data(key: &[u8]) -> AnyResult<()> {
+    let key = Key::<Aes256Gcm>::from_slice(key);
     let cipher = Aes256Gcm::new(key);
 
     let dir = fs::read_dir("./data")?;
