@@ -61,7 +61,7 @@ impl Rucksack {
 
 fn contents_to_priority_bitset(contents: &str) -> u64 {
     contents.bytes().fold(0, |acc, chr| {
-        let shift = if (b'a'..=b'z').contains(&chr) {
+        let shift = if chr.is_ascii_lowercase() {
             chr - b'a' + 1
         } else {
             chr - b'A' + 27
