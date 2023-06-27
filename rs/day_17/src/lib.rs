@@ -166,7 +166,6 @@ mod tests {
         }
 
         #[test]
-        #[ignore = "TODO: fix"]
         fn example() {
             run(&Case {
                 data: super::example().1,
@@ -175,7 +174,6 @@ mod tests {
         }
 
         #[test]
-        #[ignore = "TODO: fix"]
         fn actual() {
             run(&Case {
                 data: Input::from_data(&read_data(DATA_DIR)),

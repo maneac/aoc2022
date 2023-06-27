@@ -8,6 +8,7 @@ fn main() {
 }
 
 fn bench() {
+    return;
     let mut criterion = Criterion::default().configure_from_args();
 
     let dir = "../../data";
